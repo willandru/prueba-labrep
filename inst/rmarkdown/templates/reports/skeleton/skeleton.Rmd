@@ -1,0 +1,282 @@
+---
+date: "`r Sys.Date()`"
+output:
+  pdf_document: 
+    number_sections: true
+  sansfont: Calibri Light
+  html_document:
+    number_sections: true
+  word_document: 
+    number_sections: true
+header-includes: |
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage[spanish, provide=*]{babel}
+  \usepackage{floatrow}
+  \floatsetup[figure]{capposition=top}
+  \usepackage{array}
+  \usepackage{fancyhdr}
+  \usepackage{graphicx}
+  \usepackage{hyperref}
+  \usepackage{pdfpages}
+  \usepackage[defaultfam,tabular,lining]{montserrat}
+  \usepackage{xcolor}
+  \usepackage[font=bf]{caption}
+  \definecolor{colortitles}{HTML}{145765}
+  \definecolor{colorborder}{HTML}{337E8C}
+  \usepackage{colortbl}
+  \arrayrulecolor{colorborder}
+  \usepackage{caption}
+  \captionsetup[table]{position=above,name=Tabla}
+params:
+  fci_data:
+    label: "Datos Fundación Cardio Infantil"
+    input: file
+    value: ""
+  other_viruses:
+    label: "Datos Otros virus"
+    input: file
+    value: ""
+  tosferina:
+    label: "Datos Tosferina"
+    input: file
+    value: ""
+  historic_data:
+    label: "Datos Historicos"
+    input: file
+    value: ""
+  epiweek:
+    label: "Semana epidemiológica"
+    input: text
+    value: 23
+  periodo_epi:
+    label: "Periodo epidemiológica"
+    input: numeric
+    value: 5
+  store_data:
+    label: "Guardar datos en Github"
+    input: checkbox
+    value: false
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+
+```{r setup, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  error = FALSE,
+  dev = "cairo_pdf"
+)
+knitr::opts_knit$set(eval.after = "fig.cap")
+
+library(dplyr)
+library(labrep)
+sysfonts::font_add_google("Montserrat", "Montserrat")
+showtext::showtext_auto()
+print(params$fci_data)
+```
+
+```{=tex}
+\fontsize{11.5}{13}
+\fontseries{c}
+\selectfont
+```
+
+\includepdf[pages={1}]{cover.pdf}
+
+```{=tex}
+\begin{center}
+{\color{colortitles} Alcalde Mayor de Bogotá\\}
+Carlos Fernando Galán Pachón\\~\\
+
+
+{\color{colortitles} Secretario Distrital de Salud\\}
+Gerson Orlando Bermont Galavis\\~\\
+
+
+{\color{colortitles} Subsecretario de Salud Pública\\}
+Manuel Alfredo González Mayorga\\[0.4in]
+
+
+{\color{colortitles} Coordinación general del documento\\~\\}
+
+
+{\color{colortitles} Directora de Epidemiología, Análisis y Gestión de\\ 
+Políticas de Salud Colectiva\\}
+Diane Moyano Romero\\~\\
+
+
+{\color{colortitles} Subdirectora de Vigilancia en Salud Pública\\}
+Sol Yiber Beltran Aguilera\\[0.5in]
+
+
+{\color{colortitles} Autor\\~\\}
+{\color{colortitles} Laboratorio de Salud Pública\\}
+Sandra Liliana Gómez Bautista\\
+Paula Andrea Borda Osuna\\[0.6in]
+
+
+{\color{colortitles} Coordinación Editorial\\~\\}
+
+{\color{colortitles} Oficina Asesora de Comunicaciones en Salud\\}
+María Juliana Silva Amado\\~\\
+
+
+{\color{colortitles} Corrección de estilo\\}
+José Aldemar Garzón González\\~\\
+
+
+{\color{colortitles} Diseño y diagramación\\}
+Harol Giovanny León Niampira\\~\\
+
+
+{\color{colortitles} Fotografía portada\\}
+www.saludcapital.gov.co\\~\\
+
+
+{\color{colortitles}
+Secretaría Distrital de Salud\\
+Carrera 32 No. 12-81\\
+Conmutador: 364 9090\\
+Bogotá, D. C. - 2024\\
+www.saludcapital.gov.co\\}
+\end{center}
+```
+```{=tex}
+\pagenumbering{gobble}
+\pagenumbering{arabic}
+```
+\newpage
+
+```{=tex}
+\begin{flushleft}
+{\color{colortitles} \section{Virus respiratorios}}
+\end{flushleft}
+```
+
+```{r current-year, include=FALSE}
+current_year <- format(Sys.Date(), "%Y")
+```
+
+
+```{r, include=FALSE}
+source("C:/Users/willi/Documents/feat-storage-data/R/checking_data.R", local = knitr::knit_global())
+source("C:/Users/willi/Documents/feat-storage-data/R/import_data.R", local = knitr::knit_global())
+source("C:/Users/willi/Documents/feat-storage-data/R/plotting_data.R", local = knitr::knit_global())
+source("C:/Users/willi/Documents/feat-storage-data/R/cleaning_data.R", local = knitr::knit_global())
+source("C:/Users/willi/Documents/feat-storage-data/R/theme.R", local = knitr::knit_global())
+source("C:/Users/willi/Documents/feat-storage-data/R/utils.R", local = knitr::knit_global())
+```
+
+
+
+Durante `r current_year`, el Laboratorio de Salud Pública (LSP) continúa
+apoyando la vigilancia de la infección respiratoria aguda en Bogotá, mediante el
+procesamiento de muestras remitidas por instituciones centinela de los
+eventos: Enfermedad Similar a Influenza (ESI) que son pacientes
+ambulatorios, de pacientes hospitalizados por Infección Respiratoria
+Aguda Grave (IRAG) y de IRAG inusitado que se presente en cualquier
+institución de la ciudad.
+
+Las muestras previamente son procesadas por RT-PCR para SARS-CoV-2 y
+después continúan su análisis con: panel respiratorio  Allplex y reacción en
+cadena de la polimerasa con transcriptasa inversa (RT-PCR) para el
+diagnóstico de los principales agentes a los que se les atribuye el
+IRAG.
+
+
+
+```{r dataset_respiratory_viruses_2022_20224}
+#IMPORTING DATASET: "VIRUS RESPIRATORIO 2022 A 2024.xlsx"
+
+
+dataset_sheet_name <- "POR PERIODO"
+all_tables_from_sheet <- get_all_tables(file_name=params$historic_data, sheet_name=dataset_sheet_name)
+dataset_number <- 2
+
+cl_dataset_respiratory_viruses_last_3_years <- get_selected_table(list_of_tables=all_tables_from_sheet, indicator=dataset_number)
+```
+
+```{r cl_dataset_respiratory_viruses_last_3_years}
+# CLEANING
+
+cl_dataset_respiratory_viruses_last_3_years <- clean_historic_data(dataset = cl_dataset_respiratory_viruses_last_3_years)
+
+```
+
+
+```{r filmarray-data}
+filmarray_data <- import_data_viral_circulation(report_data = params$fci_data,sheet = 1, skip = 3)
+filmarray_data_cleaned <- clean_filmarray_data(filmarray_data = filmarray_data)
+filmarray_data_cleaned <- generate_age_categories(dataset = filmarray_data_cleaned)
+```
+
+```{r other-viruses-data}
+other_viruses_data <- import_data_viral_circulation(report_data =params$other_viruses,skip = 0,    sheet = 1)
+other_viruses_cleaned_data  <- clean_data_other_viruses(other_viruses_data)
+
+```
+
+
+
+ESTOS SON LOS DATOS A ALMACENAR:
+
+```{r}
+
+print(params$store_data)
+
+save_compressed_rds <- function(data, dir) {
+  # Verificar que el directorio existe, si no, crearlo
+  if (!dir.exists(dir)) {
+    dir.create(dir, recursive = TRUE)
+  }
+  
+  # Si 'data' es una lista, guardar cada dataframe
+  if (is.list(data)) {
+    for (name in names(data)) {
+      if (is.null(name) || name == "") {
+        stop("Todos los dataframes en la lista deben tener un nombre.")
+      }
+      filepath <- file.path(dir, paste0(name, ".rds"))
+      saveRDS(data[[name]], file = filepath, compress = "xz")
+      message(paste("Datos guardados en:", filepath))
+    }
+  } else { 
+    # Si 'data' es un solo dataframe, obtener su nombre automáticamente
+    name <- deparse(substitute(data))  # Extrae el nombre del dataframe
+    filepath <- file.path(dir, paste0(name, ".rds"))
+    saveRDS(data, file = filepath, compress = "xz")
+    message(paste("Datos guardados en:", filepath))
+  }
+}
+
+
+
+
+path_library <- "C:/Users/willi/Documents/feat-storage-data/inst/extdata/library-labrep"
+
+if (params$store_data){
+  str(filmarray_data_cleaned)
+  str(other_viruses_cleaned_data)
+  str(cl_dataset_respiratory_viruses_last_3_years)
+  
+  datasets_to_be_stored <- list(
+  filmarray_data_cleaned = filmarray_data_cleaned,
+  other_viruses_cleaned_data = other_viruses_cleaned_data,
+  cl_dataset_respiratory_viruses_last_3_years = cl_dataset_respiratory_viruses_last_3_years
+)
+
+  
+  save_compressed_rds(data = datasets_to_be_stored, dir=path_library )
+}
+
+```
+
+
+
+
+\includepdf[pages={1}]{back_cover.pdf}

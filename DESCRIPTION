@@ -1,0 +1,43 @@
+Package: labrep
+Title: Paquete para la Generación Automática del Informe de Circulación Viral
+Version: 0.0.1
+Authors@R: c(
+     person(given = "Geraldine", family = "Gómez-Millán", email = "geralidine.gomez@javeriana.edu.co", role = c("aut", "cre", "ctb"),
+        comment = c(ORCID = "0009-0007-8701-0568"))
+  )
+Description: Herramienta para la Generación Automática del Informe de 
+             Circulación Viral
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Imports: 
+    config,
+    dplyr,
+    ggplot2,
+    httr2,
+    stringr,
+    xml2,
+    epitrix,
+    sf,
+    readxl,
+    rlang,
+    tools,
+    sysfonts,
+    showtext,
+    kableExtra,
+    plotrix,
+    tidyr
+Suggests: 
+    knitr,
+    rmarkdown,
+    spelling,
+    testthat (>= 3.0.0)
+Depends: R (>= 4.0.0)
+Config/Needs/website:
+    r-lib/pkgdown,
+    epiverse-trace/epiversetheme
+VignetteBuilder: knitr
+Language: es_ES
+BugReports: https://github.com/TRACE-LAC/labrep/issues
+Config/testthat/edition: 3
