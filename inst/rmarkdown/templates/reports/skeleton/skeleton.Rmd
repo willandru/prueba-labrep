@@ -164,12 +164,12 @@ current_year <- format(Sys.Date(), "%Y")
 
 
 ```{r, include=FALSE}
-source("C:/Users/willi/Documents/feat-storage-data/R/checking_data.R", local = knitr::knit_global())
-source("C:/Users/willi/Documents/feat-storage-data/R/import_data.R", local = knitr::knit_global())
-source("C:/Users/willi/Documents/feat-storage-data/R/plotting_data.R", local = knitr::knit_global())
-source("C:/Users/willi/Documents/feat-storage-data/R/cleaning_data.R", local = knitr::knit_global())
-source("C:/Users/willi/Documents/feat-storage-data/R/theme.R", local = knitr::knit_global())
-source("C:/Users/willi/Documents/feat-storage-data/R/utils.R", local = knitr::knit_global())
+source("C:/Users/willi/Desktop/prueba-labrep/R/checking_data.R", local = knitr::knit_global())
+source("C:/Users/willi/Desktop/prueba-labrep/R/import_data.R", local = knitr::knit_global())
+source("C:/Users/willi/Desktop/prueba-labrep/R/plotting_data.R", local = knitr::knit_global())
+source("C:/Users/willi/Desktop/prueba-labrep/R/cleaning_data.R", local = knitr::knit_global())
+source("C:/Users/willi/Desktop/prueba-labrep/R/theme.R", local = knitr::knit_global())
+source("C:/Users/willi/Desktop/prueba-labrep/R/utils.R", local = knitr::knit_global())
 ```
 
 
@@ -222,6 +222,11 @@ other_viruses_cleaned_data  <- clean_data_other_viruses(other_viruses_data)
 ```
 
 
+```{r}
+status_output <- system("git status", intern = TRUE)
+cat(status_output, sep = "\n")
+
+```
 
 ESTOS SON LOS DATOS A ALMACENAR:
 
@@ -229,6 +234,9 @@ ESTOS SON LOS DATOS A ALMACENAR:
 
 print(params$store_data)
 
+
+###################################################################################################################
+# Convierte a RDS y almacena en el repositorio de GITHUB los dataframes
 save_compressed_rds <- function(data, dir) {
   # Verificar que el directorio existe, si no, crearlo
   if (!dir.exists(dir)) {
@@ -255,28 +263,181 @@ save_compressed_rds <- function(data, dir) {
 }
 
 
-
-
-path_library <- "C:/Users/willi/Documents/feat-storage-data/inst/extdata/library-labrep"
-
-if (params$store_data){
-  str(filmarray_data_cleaned)
-  str(other_viruses_cleaned_data)
-  str(cl_dataset_respiratory_viruses_last_3_years)
+###################################################################################################################
+## Preguntar si estamos en un repositorio de GITHUB
+is_github_repo <- function() {
+  # Verificar si estamos en un repositorio Git
+  is_git_repo <- system("git rev-parse --is-inside-work-tree", intern = TRUE, ignore.stderr = TRUE)
   
+  if (is_git_repo != "true") {
+    return(FALSE)  # No es un repositorio Git
+  }
+  
+  # Verificar si el repositorio tiene un remoto de GitHub
+  remote_url <- system("git remote get-url origin", intern = TRUE, ignore.stderr = TRUE)
+  
+  if (length(remote_url) == 0) {
+    return(FALSE)  # No hay remoto configurado
+  }
+  
+  # Verificar si el remoto contiene "github.com"
+  return(grepl("github.com", remote_url))
+}
+
+
+###################################################################################################################
+## Verifica si Git ya está configurado con el nombre y el correo de usuario
+is_git_configured <- function() {
+  # Obtener el nombre de usuario configurado en Git
+  git_user <- system("git config --get user.name", intern = TRUE, ignore.stderr = TRUE)
+  
+  # Obtener el correo electrónico configurado en Git
+  git_email <- system("git config --get user.email", intern = TRUE, ignore.stderr = TRUE)
+  
+  # Verificar que ambos valores no estén vacíos
+  return(nzchar(git_user) && nzchar(git_email))
+}
+
+###################################################################################################################
+## HACER GIT ADD, GIT COMMIT Y GIT PUSH
+git_add_commit_and_push <- function(path_library) {
+  # Verificar si estamos en un repositorio Git y si Git está configurado correctamente
+  if (!is_github_repo()) {
+    message("Error: No estás dentro de un repositorio GitHub.")
+    return(FALSE)
+  }
+  
+  if (!is_git_configured()) {
+    message("Error: Git no está configurado con user.name y user.email.")
+    return(FALSE)
+  }
+
+  # Mostrar el estado inicial del repositorio
+  message("Ejecutando 'git status' antes de agregar cambios:")
+  status_output <- system("git status", intern = TRUE)
+  message(paste(status_output, collapse = "\n"))
+
+  # Agregar la carpeta con todos los cambios
+  git_add_command <- paste0("git add ", path_library)
+  message("Ejecutando: ", git_add_command)
+  add_output <- system(git_add_command, intern = TRUE)
+  message(paste(add_output, collapse = "\n"))
+
+  # Mostrar estado después de git add
+  message("Ejecutando 'git status' después de agregar cambios:")
+  status_after_add <- system("git status", intern = TRUE)
+  message(paste(status_after_add, collapse = "\n"))
+
+  # Hacer commit con un mensaje fijo
+  message("Ejecutando commit...")
+  commit_output <- system('git commit -m "PRUEBA:: actualizacion de datos RDS"', intern = TRUE)
+  message(paste(commit_output, collapse = "\n"))
+
+  # Verificar si hubo cambios para hacer commit
+  if (any(grepl("nothing to commit", commit_output))) {
+    message("No hay cambios para hacer commit.")
+    return(FALSE)
+  }
+
+  # Hacer push al repositorio remoto en la rama 'main'
+  message("Ejecutando 'git push'...")
+  push_output <- system("git push origin main", intern = TRUE)
+  message(paste(push_output, collapse = "\n"))
+
+  # Verificar si hubo error en el push
+  if (any(grepl("error", push_output, ignore.case = TRUE))) {
+    message("Error al hacer 'git push'.")
+    return(FALSE)
+  }
+
+  message("Git add, commit y push realizados con éxito.")
+  return(TRUE)
+}
+
+
+
+
+## FUCNION PARA VERIFICAR PERISMISOS EN EL REPOSITORIO PARA HACER PUSH
+check_git_repository_access <- function() {
+  # Verificar si estamos en un repositorio Git
+  is_git_repo <- system("git rev-parse --is-inside-work-tree", intern = TRUE, ignore.stderr = TRUE)
+  if (is_git_repo != "true") {
+    message("No estás dentro de un repositorio Git.")
+    return(FALSE)
+  }
+
+  # Obtener la URL del remoto
+  repo_url <- system("git config --get remote.origin.url", intern = TRUE, ignore.stderr = TRUE)
+  if (length(repo_url) == 0) {
+    message("No se encontró un repositorio remoto configurado.")
+    return(FALSE)
+  }
+  
+  # Verificar si el usuario tiene acceso al remoto
+  access_check <- system("git ls-remote --get-url", intern = TRUE, ignore.stderr = TRUE)
+  if (length(access_check) == 0) {
+    message("No tienes acceso al repositorio remoto.")
+    return(FALSE)
+  }
+
+  # Verificar permisos de escritura (push)
+  push_check <- system("git remote show origin | grep 'Push  URL'", intern = TRUE, ignore.stderr = TRUE)
+  
+  if (grepl("github.com", repo_url)) {
+    if (length(push_check) > 0) {
+      message("Tienes acceso de lectura y escritura (pull & push) al repositorio.")
+    } else {
+      message("Solo tienes acceso de lectura (pull), no puedes hacer push.")
+    }
+  } else {
+    message("Repositorio remoto detectado, pero no es de GitHub.")
+  }
+
+  return(TRUE)
+}
+
+
+
+```
+
+```{r}
+# Definir la ruta donde se almacenarán los archivos RDS
+path_library <- "C:/Users/willi/Desktop/prueba-labrep/inst/extdata/library-labrep"
+
+# Si el usuario ha marcado la opción para almacenar datos
+if (params$store_data) {
+  print("Iniciando el almacenamiento de los archivos en formato RDS...")
+
   datasets_to_be_stored <- list(
-  filmarray_data_cleaned = filmarray_data_cleaned,
-  other_viruses_cleaned_data = other_viruses_cleaned_data,
-  cl_dataset_respiratory_viruses_last_3_years = cl_dataset_respiratory_viruses_last_3_years
-)
+    filmarray_data_cleaned = filmarray_data_cleaned,
+    other_viruses_cleaned_data = other_viruses_cleaned_data,
+    cl_dataset_respiratory_viruses_last_3_years = cl_dataset_respiratory_viruses_last_3_years
+  )
 
+  # Guardar los datasets en RDS
+  save_compressed_rds(data = datasets_to_be_stored, dir = path_library)
+
+  print("Archivos RDS guardados exitosamente en 'inst/extdata/library-labrep/'.")
+
+  # Enviar los cambios a GitHub
+  print("Enviando los cambios a GitHub...")
   
-  save_compressed_rds(data = datasets_to_be_stored, dir=path_library )
+  if (git_add_commit_and_push(path_library = path_library)) {
+    print("cambios subidos exitosamente a GitHub.")
+  } else {
+    print("No se pudieron subir los cambios a GitHub.")
+  }
 }
 
 ```
 
+```{r}
+status_output <- system("git status", intern = TRUE)
+cat(status_output, sep = "\n")
 
+
+check_git_repository_access()
+```
 
 
 \includepdf[pages={1}]{back_cover.pdf}
