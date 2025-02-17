@@ -373,6 +373,8 @@ check_git_repository_access <- function() {
     return(FALSE)
   }
   
+  message("Repositorio remoto: ", repo_url)
+
   # Verificar si el usuario tiene acceso al remoto
   access_check <- system("git ls-remote --get-url", intern = TRUE, ignore.stderr = TRUE)
   if (length(access_check) == 0) {
@@ -382,12 +384,12 @@ check_git_repository_access <- function() {
 
   # Verificar permisos de escritura (push)
   push_check <- system("git remote show origin | grep 'Push  URL'", intern = TRUE, ignore.stderr = TRUE)
-  
+
   if (grepl("github.com", repo_url)) {
     if (length(push_check) > 0) {
-      message("Tienes acceso de lectura y escritura (pull & push) al repositorio.")
+      message("Acceso: Tienes permisos de lectura y escritura (pull & push).")
     } else {
-      message("Solo tienes acceso de lectura (pull), no puedes hacer push.")
+      message("Acceso: Solo puedes leer el repositorio (pull), no tienes permisos de escritura (push).")
     }
   } else {
     message("Repositorio remoto detectado, pero no es de GitHub.")
@@ -395,6 +397,7 @@ check_git_repository_access <- function() {
 
   return(TRUE)
 }
+
 
 
 
@@ -436,7 +439,7 @@ status_output <- system("git status", intern = TRUE)
 cat(status_output, sep = "\n")
 
 
-check_git_repository_access()
+#check_git_repository_access()
 ```
 
 
